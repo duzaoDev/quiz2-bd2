@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Interativo - SBD</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        #quiz-container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #0056b3;
+        }
+        #question-container {
+            margin-bottom: 20px;
+        }
+        .question {
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .question.easy {
+            background-color: #e6ffed;
+            border-left: 5px solid #28a745;
+        }
+        .question.medium {
+            background-color: #e6f7ff;
+            border-left: 5px solid #007bff;
+        }
+        .question.hard {
+            background-color: #ffebf0;
+            border-left: 5px solid #dc3545;
+        }
+        .options {
+            list-style: none;
+            padding: 0;
+        }
+        .options li {
+            margin-bottom: 10px;
+        }
+        .options button {
+            width: 100%;
+            padding: 10px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.3s;
+        }
+        .options button:hover {
+            background-color: #e9ecef;
+        }
+        .options button.correct {
+            background-color: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+        .options button.wrong {
+            background-color: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+        #navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #next-btn, #restart-btn {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #next-btn:disabled {
+            background-color: #ccc;
+        }
+        #result {
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        #result.hidden, #restart-btn.hidden, #next-btn.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="quiz-container">
+        <h1>Quiz Interativo - Sistemas de Bancos de Dados</h1>
+        <div id="question-container">
+            <div id="question" class="question"></div>
+            <ul id="options" class="options"></ul>
+        </div>
+        <div id="navigation">
+            <button id="next-btn" disabled>Próxima</button>
+            <div id="result" class="hidden"></div>
+        </div>
+        <button id="restart-btn" class="hidden">Reiniciar Quiz</button>
+    </div>
+
+    <script>
+        const allQuestions = [
+            // FÁCIL (EASY)
+            { question: "Qual comando é usado para instalar o `aptitude` no Ubuntu?", options: ["sudo get aptitude", "sudo apt install aptitude", "install aptitude", "apt-get aptitude"], answer: "sudo apt install aptitude", difficulty: "easy" },
+            { question: "Qual a porta padrão para o PostgreSQL mencionada nos documentos?", options: ["3306", "1527", "5432", "8080"], answer: "5432", difficulty: "easy" },
+            { question: "O que o comando `ant jar` faz?", options: ["Executa o programa", "Compila o código e cria um arquivo .jar", "Configura o banco de dados", "Limpa o projeto"], answer: "Compila o código e cria um arquivo .jar", difficulty: "easy" },
+            { question: "Qual classe Java armazena o resultado de uma consulta SQL?", options: ["Statement", "Connection", "ResultSet", "DriverManager"], answer: "ResultSet", difficulty: "easy" },
+            { question: "Para que serve o DBeaver?", options: ["Um servidor de banco de dados", "Uma linguagem de programação", "Uma ferramenta gráfica para gerenciar bancos de dados", "Uma biblioteca Java"], answer: "Uma ferramenta gráfica para gerenciar bancos de dados", difficulty: "easy" },
+            { question: "Qual é a função do `DriverManager` em JDBC?", options: ["Gerenciar drivers e estabelecer conexões", "Executar consultas SQL", "Representar uma conexão", "Armazenar resultados"], answer: "Gerenciar drivers e estabelecer conexões", difficulty: "easy" },
+            { question: "O que a `SQLException` representa em JDBC?", options: ["Erro de sintaxe no Java", "Erro de acesso ao banco de dados", "Problema de compatibilidade de driver", "Erro de conexão de rede"], answer: "Erro de acesso ao banco de dados", difficulty: "easy" },
+            { question: "Qual comando SQL lista nomes de agências sem repetição?", options: ["SELECT nome_agencia", "SELECT ALL nome_agencia", "SELECT DISTINCT nome_agencia", "LIST UNIQUE nome_agencia"], answer: "SELECT DISTINCT nome_agencia", difficulty: "easy" },
+            { question: "Como o `psql` é descrito nos tutoriais?", options: ["Uma ferramenta de backup", "A interface de linha de comando para o PostgreSQL", "Um driver JDBC", "Um SGBD alternativo"], answer: "A interface de linha de comando para o PostgreSQL", difficulty: "easy" },
+            { question: "Qual comando Linux altera as permissões de um arquivo para torná-lo executável?", options: ["chown", "exec", "chmod 755", "run"], answer: "chmod 755", difficulty: "easy" },
+            { question: "O que é um arquivo `.jar` em Java?", options: ["Um arquivo de código-fonte", "Um pacote de software compactado", "Um arquivo de configuração", "Um script de banco de dados"], answer: "Um pacote de software compactado", difficulty: "easy" },
+            { question: "Qual SGBD embarcado é mencionado como padrão no tutorial do JDBC?", options: ["SQLite", "PostgreSQL", "MySQL", "Derby"], answer: "Derby", difficulty: "easy" },
+            { question: "Em SQL, que cláusula é usada para filtrar resultados?", options: ["FILTER", "WHERE", "HAVING", "GROUP"], answer: "WHERE", difficulty: "easy" },
+            { question: "O que `sudo` significa em comandos Linux?", options: ["Super do", "Executar como superusuário", "Parar o processo", "Diretório do sistema"], answer: "Executar como superusuário", difficulty: "easy" },
+            { question: "Qual a finalidade do `GROUP BY` em SQL?", options: ["Ordenar os resultados", "Agrupar linhas que têm os mesmos valores", "Filtrar os resultados", "Juntar tabelas"], answer: "Agrupar linhas que têm os mesmos valores", difficulty: "easy" },
+            { question: "Qual método Java é usado para ler uma linha de um arquivo de texto com `BufferedReader`?", options: ["readLine()", "getNext()", "read()", "fetchLine()"], answer: "readLine()", difficulty: "easy" },
+            { question: "O que a sigla SGBD significa?", options: ["Sistema Gerenciador de Banco de Dados", "Software de Grande Base de Dados", "Sistema de Gestão de Bibliotecas Digitais", "Serviço de Gerenciamento de Dados Binários"], answer: "Sistema Gerenciador de Banco de Dados", difficulty: "easy" },
+            { question: "Qual comando SQL é usado para inserir novos dados em uma tabela?", options: ["ADD", "INSERT INTO", "CREATE", "NEW"], answer: "INSERT INTO", difficulty: "easy" },
+            { question: "Qual a função da palavra-chave `public` em uma declaração de método Java?", options: ["O método só pode ser acessado pela própria classe", "O método pode ser acessado de qualquer lugar", "O método é final e não pode ser sobrescrito", "O método não retorna nenhum valor"], answer: "O método pode ser acessado de qualquer lugar", difficulty: "easy" },
+            { question: "O que o comando `cd` faz no terminal Linux?", options: ["Cria um diretório", "Copia um arquivo", "Muda o diretório atual", "Deleta um diretório"], answer: "Muda o diretório atual", difficulty: "easy" },
+
+            // MÉDIO (MEDIUM)
+            { question: "Qual a forma mais recomendada de acessar valores de um `ResultSet` em Java?", options: ["Pelo índice numérico da coluna", "Pelo nome da coluna ou alias", "Ambos são igualmente recomendados", "Utilizando `getObject()`"], answer: "Pelo nome da coluna ou alias", difficulty: "medium" },
+            { question: "Qual método do `PreparedStatement` adiciona comandos a um lote?", options: ["executeBatch()", "addBatch()", "executeUpdate()", "addToBatch()"], answer: "addBatch()", difficulty: "medium" },
+            { question: "O que significa `ResultSet.HOLD_CURSORS_OVER_COMMIT`?", options: ["O cursor é fechado após um commit", "O cursor permanece aberto após um commit", "O SGBD não suporta cursores", "O commit não é permitido com cursor aberto"], answer: "O cursor permanece aberto após um commit", difficulty: "medium" },
+            { question: "Qual a principal vantagem de usar `Batch Updates` em JDBC?", options: ["Simplificar o SQL", "Aumentar a segurança", "Melhorar a eficiência ao enviar múltiplos comandos de uma vez", "Facilitar o tratamento de exceções"], answer: "Melhorar a eficiência ao enviar múltiplos comandos de uma vez", difficulty: "medium" },
+            { question: "Para que serve `try-with-resources` em Java com conexões de banco?", options: ["Tentar executar uma query múltiplas vezes", "Garantir o fechamento automático de recursos", "Capturar exceções de SQL de forma mais eficiente", "Criar recursos de banco de dados dinamicamente"], answer: "Garantir o fechamento automático de recursos", difficulty: "medium" },
+            { question: "O que é `JPA (Java Persistence API)`?", options: ["Uma API de baixo nível para acesso a dados", "Um padrão para Mapeamento Objeto-Relacional (ORM)", "Um driver JDBC para NoSQL", "Uma ferramenta para criar interfaces gráficas"], answer: "Um padrão para Mapeamento Objeto-Relacional (ORM)", difficulty: "medium" },
+            { question: "Qual comando SQL remove todas as linhas de uma tabela rapidamente?", options: ["DELETE FROM", "DROP TABLE", "TRUNCATE TABLE", "CLEAR TABLE"], answer: "TRUNCATE TABLE", difficulty: "medium" },
+            { question: "No PostgreSQL, o que a função `COALESCE` faz?", options: ["Concatena strings", "Retorna o primeiro argumento não nulo", "Calcula a média", "Converte um tipo de dado"], answer: "Retorna o primeiro argumento não nulo", difficulty: "medium" },
+            { question: "Qual a diferença entre `executeQuery()` e `executeUpdate()`?", options: ["Não há diferença", "`executeQuery()` é para SELECT, `executeUpdate()` é para DML", "`executeUpdate()` retorna ResultSet", "`executeQuery()` é usado com `PreparedStatement`"], answer: "`executeQuery()` é para SELECT, `executeUpdate()` é para DML", difficulty: "medium" },
+            { question: "Para que serve a URL de conexão JDBC?", options: ["Identificar o programador", "Especificar driver, servidor, porta e banco de dados", "Localizar o arquivo do driver", "Definir permissões de usuário"], answer: "Especificar driver, servidor, porta e banco de dados", difficulty: "medium" },
+            { question: "Em SQL, qual a diferença entre `WHERE` e `HAVING`?", options: ["Nenhuma", "WHERE filtra linhas antes do agrupamento, HAVING filtra grupos", "HAVING é para SELECT, WHERE para UPDATE", "WHERE é para strings, HAVING para números"], answer: "WHERE filtra linhas antes do agrupamento, HAVING filtra grupos", difficulty: "medium" },
+            { question: "Qual a finalidade de um arquivo `.dump` no PostgreSQL?", options: ["Log de erros", "Código-fonte do SGBD", "Arquivo de backup com estrutura e/ou dados", "Configuração do driver"], answer: "Arquivo de backup com estrutura e/ou dados", difficulty: "medium" },
+            { question: "O que o operador `LIKE` faz em uma cláusula `WHERE`?", options: ["Compara igualdade exata", "Realiza uma correspondência de padrão em strings", "Verifica se um valor é nulo", "Compara valores numéricos"], answer: "Realiza uma correspondência de padrão em strings", difficulty: "medium" },
+            { question: "No Java, para que serve a classe `Properties`?", options: ["Para definir propriedades do sistema operacional", "Para armazenar um conjunto de propriedades no formato chave-valor", "Para configurar a JVM", "Para gerenciar threads"], answer: "Para armazenar um conjunto de propriedades no formato chave-valor", difficulty: "medium" },
+            { question: "O que é uma chave estrangeira (FOREIGN KEY) em um banco de dados relacional?", options: ["A chave principal de outra tabela", "Um campo que vincula uma tabela a outra, garantindo integridade referencial", "Um índice para acelerar consultas", "Um tipo especial de dado"], answer: "Um campo que vincula uma tabela a outra, garantindo integridade referencial", difficulty: "medium" },
+            { question: "Qual a diferença entre `UNION` e `UNION ALL` em SQL?", options: ["São idênticos", "`UNION` remove duplicatas, `UNION ALL` não", "`UNION ALL` é mais lento", "`UNION` só funciona com duas tabelas"], answer: "`UNION` remove duplicatas, `UNION ALL` não", difficulty: "medium" },
+            { question: "O que o método `split()` de uma String faz em Java?", options: ["Junta várias strings", "Divide a string em um array de substrings com base em um delimitador", "Remove espaços em branco", "Converte a string para maiúsculas"], answer: "Divide a string em um array de substrings com base em um delimitador", difficulty: "medium" },
+            { question: "Por que é importante usar `PreparedStatement` em vez de `Statement` para queries com parâmetros do usuário?", options: ["Para deixar o código mais bonito", "Para evitar ataques de SQL Injection", "Porque `Statement` está obsoleto", "Para melhorar o uso de memória"], answer: "Para evitar ataques de SQL Injection", difficulty: "medium" },
+            { question: "O que o `ResultSet.TYPE_FORWARD_ONLY` significa?", options: ["O cursor pode se mover em qualquer direção", "O cursor só pode se mover para frente", "O ResultSet é atualizável", "O ResultSet é sensível a mudanças"], answer: "O cursor só pode se mover para frente", difficulty: "medium" },
+            { question: "Qual o propósito do arquivo `build.xml`?", options: ["É o arquivo principal do código Java", "Define tarefas para a ferramenta de build Ant", "Armazena as senhas do banco de dados", "Contém o esquema do banco de dados"], answer: "Define tarefas para a ferramenta de build Ant", difficulty: "medium" },
+
+            // DIFÍCIL (HARD)
+            { question: "O que a propriedade `CONCUR_UPDATABLE` em um `ResultSet` permite?", options: ["Apenas ler os dados", "Modificar os dados diretamente através do `ResultSet`", "Acesso concorrente de múltiplos usuários", "Navegação apenas para frente"], answer: "Modificar os dados diretamente através do `ResultSet`", difficulty: "hard" },
+            { question: "Por que desativar o `auto-commit` ao realizar operações em lote?", options: ["Para acelerar a conexão", "Para o SGBD decidir o commit", "Para agrupar operações em uma única transação", "Para evitar `try-catch`"], answer: "Para agrupar operações em uma única transação", difficulty: "hard" },
+            { question: "O que o `ResultSet.TYPE_SCROLL_SENSITIVE` indica?", options: ["O `ResultSet` não pode ser percorrido", "Não reflete mudanças externas", "Geralmente reflete mudanças feitas por outros no BD", "Só pode ser percorrido para frente"], answer: "Geralmente reflete mudanças feitas por outros no BD", difficulty: "hard" },
+            { question: "No `build.xml` do Ant, o que a tag `<target>` representa?", options: ["Uma dependência", "Uma variável de ambiente", "Um conjunto de tarefas a serem executadas", "O caminho para o compilador"], answer: "Um conjunto de tarefas a serem executadas", difficulty: "hard" },
+            { question: "Qual método do `ResultSet` persiste a modificação de uma linha no banco?", options: ["commit()", "updateRow()", "saveRow()", "executeChange()"], answer: "updateRow()", difficulty: "hard" },
+            { question: "Qual a diferença entre `LEFT OUTER JOIN` e `INNER JOIN`?", options: ["`INNER JOIN` retorna todas as linhas da tabela da esquerda", "`LEFT JOIN` retorna todas as linhas da esquerda e as correspondentes da direita", "`LEFT JOIN` retorna apenas linhas sem correspondência", "São sinônimos"], answer: "`LEFT JOIN` retorna todas as linhas da esquerda e as correspondentes da direita", difficulty: "hard" },
+            { question: "O que o método `moveToInsertRow()` faz em um `ResultSet` atualizável?", options: ["Move o cursor para a última linha", "Move para uma linha especial para inserção de novos dados", "Deleta a linha atual", "Atualiza a linha atual"], answer: "Move para uma linha especial para inserção de novos dados", difficulty: "hard" },
+            { question: "Por que o `try-with-resources` torna o `close()` explícito da conexão desnecessário?", options: ["O garbage collector fecha a conexão", "Garante que o método `close()` será chamado ao final do bloco", "Conexões stand-alone não precisam ser fechadas", "O SGBD fecha a conexão após a consulta"], answer: "Garante que o método `close()` será chamado ao final do bloco", difficulty: "hard" },
+            { question: "O que é um framework ORM como o Hibernate?", options: ["Uma camada de abstração que mapeia objetos Java para tabelas de banco de dados", "Um driver JDBC otimizado", "Uma ferramenta para criar diagramas de BD", "Um tipo especial de SGBD"], answer: "Uma camada de abstração que mapeia objetos Java para tabelas de banco de dados", difficulty: "hard" },
+            { question: "Qual a diferença na URL de conexão JDBC para Derby (embarcado) vs. PostgreSQL (servidor)?", options: ["Nenhuma", "Derby aponta para um caminho de arquivo, PostgreSQL para um servidor de rede", "A URL do PostgreSQL é sempre maior", "A do Derby não usa 'jdbc:'"], answer: "Derby aponta para um caminho de arquivo, PostgreSQL para um servidor de rede", difficulty: "hard" },
+            { question: "Ao popular uma tabela, por que a ordem de inserção dos dados entre tabelas relacionadas é importante?", options: ["Para otimizar a velocidade de inserção", "Para evitar erros de integridade referencial (chaves estrangeiras)", "Não é importante", "Para facilitar a leitura do código"], answer: "Para evitar erros de integridade referencial (chaves estrangeiras)", difficulty: "hard" },
+            { question: "O que a cláusula `INTERSECT` faz em SQL?", options: ["Combina os resultados de duas consultas", "Retorna apenas as linhas que aparecem em ambos os resultados das consultas", "Retorna as linhas da primeira consulta que não estão na segunda", "Junta colunas de tabelas diferentes"], answer: "Retorna apenas as linhas que aparecem em ambos os resultados das consultas", difficulty: "hard" },
+            { question: "Qual a função de um `TRIGGER` em um banco de dados?", options: ["Um procedimento armazenado executado manualmente", "Um gatilho que executa automaticamente uma ação em resposta a um evento (INSERT, UPDATE, DELETE)", "Um tipo de visão materializada", "Uma restrição de chave primária"], answer: "Um gatilho que executa automaticamente uma ação em resposta a um evento (INSERT, UPDATE, DELETE)", difficulty: "hard" },
+            { question: "No Java, qual a diferença entre `Statement` e `PreparedStatement` em termos de compilação da query no SGBD?", options: ["Nenhuma", "`PreparedStatement` é pré-compilado pelo SGBD, resultando em melhor performance para execuções repetidas", "`Statement` é sempre mais rápido", "`PreparedStatement` só pode ser usado com stored procedures"], answer: "`PreparedStatement` é pré-compilado pelo SGBD, resultando em melhor performance para execuções repetidas", difficulty: "hard" },
+            { question: "O que é `ResultSetMetaData` em JDBC?", options: ["São os próprios dados retornados pela query", "É um objeto que contém informações sobre a estrutura de um `ResultSet` (nomes e tipos de colunas)", "Uma classe para atualizar os metadados do banco de dados", "Um sinônimo para `DatabaseMetaData`"], answer: "É um objeto que contém informações sobre a estrutura de um `ResultSet` (nomes e tipos de colunas)", difficulty: "hard" },
+            { question: "O que o método `rollback()` da interface `Connection` faz?", options: ["Confirma a transação atual", "Desfaz todas as alterações feitas na transação atual", "Fecha a conexão com o banco de dados", "Define um ponto de salvamento na transação"], answer: "Desfaz todas as alterações feitas na transação atual", difficulty: "hard" },
+            { question: "Qual a diferença entre `ResultSet.TYPE_SCROLL_INSENSITIVE` e `ResultSet.TYPE_SCROLL_SENSITIVE`?", options: ["Não há diferença de comportamento", "`INSENSITIVE` não reflete mudanças feitas por outros, `SENSITIVE` geralmente reflete", "`SENSITIVE` é mais rápido", "`INSENSITIVE` permite atualizações, `SENSITIVE` não"], answer: "`INSENSITIVE` não reflete mudanças feitas por outros, `SENSITIVE` geralmente reflete", difficulty: "hard" },
+            { question: "O que significa 'integridade referencial' em um banco de dados?", options: ["Garantir que os dados sejam sempre criptografados", "Manter a consistência entre tabelas relacionadas através de chaves estrangeiras", "Garantir que todas as tabelas tenham uma chave primária", "A capacidade do banco de dados de se recuperar de falhas"], answer: "Manter a consistência entre tabelas relacionadas através de chaves estrangeiras", difficulty: "hard" },
+            { question: "Qual a finalidade da anotação `@Override` em Java?", options: ["Indica que o método é obsoleto", "Informa ao compilador que o método deve sobrescrever um método da superclasse", "Define o método como privado", "Marca o método para ser executado em uma thread separada"], answer: "Informa ao compilador que o método deve sobrescrever um método da superclasse", difficulty: "hard" },
+            { question: "Para que serve a cláusula `NATURAL JOIN` em SQL?", options: ["Para juntar todas as tabelas do banco de dados", "Para criar uma junção com base em todas as colunas que têm o mesmo nome nas duas tabelas", "É um sinônimo para `CROSS JOIN`", "Para juntar tabelas que não têm colunas em comum"], answer: "Para criar uma junção com base em todas as colunas que têm o mesmo nome nas duas tabelas", difficulty: "hard" },
+            { question: "O que são DDL e DML no contexto de SQL?", options: ["DDL para manipulação de dados, DML para definição", "DDL (Data Definition Language) para definir a estrutura, DML (Data Manipulation Language) para manipular dados", "Ambos são usados para consultas", "DDL é para Oracle, DML para PostgreSQL"], answer: "DDL (Data Definition Language) para definir a estrutura, DML (Data Manipulation Language) para manipular dados", difficulty: "hard" }
+        ];
+
+        const questionElement = document.getElementById('question');
+        const optionsElement = document.getElementById('options');
+        const nextButton = document.getElementById('next-btn');
+        const restartButton = document.getElementById('restart-btn');
+        const resultElement = document.getElementById('result');
+        const questionsPerRound = 25;
+
+        let currentQuestions, currentQuestionIndex, score;
+
+        function startQuiz() {
+            // Embaralha o banco de questões completo
+            const shuffledPool = allQuestions.sort(() => Math.random() - 0.5);
+            // Seleciona as primeiras N questões para a rodada atual
+            currentQuestions = shuffledPool.slice(0, questionsPerRound);
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            resultElement.classList.add('hidden');
+            restartButton.classList.add('hidden');
+            nextButton.classList.remove('hidden');
+            nextButton.disabled = true;
+            nextButton.textContent = 'Próxima';
+            showQuestion();
+        }
+
+        function showQuestion() {
+            resetState();
+            const currentQuestion = currentQuestions[currentQuestionIndex];
+            questionElement.innerHTML = currentQuestion.question;
+            questionElement.className = `question ${currentQuestion.difficulty}`;
+
+            currentQuestion.options.forEach(option => {
+                const button = document.createElement('button');
+                button.innerText = option;
+                button.classList.add('btn');
+                button.addEventListener('click', selectAnswer);
+                const li = document.createElement('li');
+                li.appendChild(button);
+                optionsElement.appendChild(li);
+            });
+        }
+
+        function resetState() {
+            nextButton.disabled = true;
+            while (optionsElement.firstChild) {
+                optionsElement.removeChild(optionsElement.firstChild);
+            }
+        }
+
+        function selectAnswer(e) {
+            const selectedBtn = e.target;
+            const isCorrect = selectedBtn.innerText === currentQuestions[currentQuestionIndex].answer;
+            if (isCorrect) {
+                selectedBtn.classList.add('correct');
+                score++;
+            } else {
+                selectedBtn.classList.add('wrong');
+            }
+            Array.from(optionsElement.children).forEach(li => {
+                const button = li.firstChild;
+                if (button.innerText === currentQuestions[currentQuestionIndex].answer) {
+                    button.classList.add('correct');
+                }
+                button.disabled = true;
+            });
+            nextButton.disabled = false;
+        }
+
+        function showResult() {
+            resetState();
+            questionElement.innerText = 'Fim de Jogo!';
+            questionElement.className = 'question';
+            resultElement.innerText = `Você acertou ${score} de ${questionsPerRound} questões!`;
+            resultElement.classList.remove('hidden');
+            restartButton.classList.remove('hidden');
+            nextButton.classList.add('hidden');
+        }
+        
+        function handleNextButton() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < currentQuestions.length) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        nextButton.addEventListener('click', () => {
+            if (currentQuestionIndex < currentQuestions.length) {
+                handleNextButton();
+            }
+        });
+        
+        restartButton.addEventListener('click', startQuiz);
+
+        startQuiz();
+    </script>
+</body>
+</html>
